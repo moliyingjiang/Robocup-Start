@@ -53,7 +53,7 @@ class CameraApp:
 
     def capture_loop(self):
         device, half, model, names, colors = init()
-        while True:
+        while self.is_running:
             ret, frame = self.cap.read()
             if not ret:
                 break
@@ -72,9 +72,7 @@ class CameraApp:
                             cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)),
                                               (0, 0, 255), 3)
 
-                            cv2.putText(frame, label, (int(x1), int(y1 - 10)), cv2.FONT_HERSHEY_SIMPLEX,
-                                        1.0,
-                                        (0, 0, 255), 3)
+                            cv2.putText(frame, label, (int(x1), int(y1 - 10)), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
                             
             # Display the frame with bounding boxes and labels
             img = Image.fromarray(frame)
