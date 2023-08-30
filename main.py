@@ -47,12 +47,13 @@ class CameraApp:
         if not self.is_running:
             self.is_running = True
             self.cap = cv2.VideoCapture(0)
-            self.camera_thread = threading.Thread(target=self.capture_loop)
-            self.camera_thread.start()
+            self.capture_loop()
+            # self.camera_thread = threading.Thread(target=self.capture_loop)
+            # self.camera_thread.start()
 
     def capture_loop(self):
         device, half, model, names, colors = init()
-        while self.is_running:
+        while True:
             ret, frame = self.cap.read()
             if not ret:
                 break
