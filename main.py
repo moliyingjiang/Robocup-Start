@@ -57,6 +57,7 @@ class CameraApp:
             ret, frame = self.cap.read()
             if not ret:
                 break
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
             img, pred = predict_img([frame], device, half, model)
             ocr_results = []
             yolo_results = []
