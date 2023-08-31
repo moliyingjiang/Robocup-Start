@@ -1,5 +1,6 @@
 # v5.py # 运行yolov5所需要的初始化方法和预测方法
 # main.py # 包含Tkinter包装和yolov5识别结果的可视化
+# config.yaml # 包含一些基本的配置，包括模型路径、置信度、类别等
 # nohup.out # 终端输出重定向到此
 # nohup-just-now.txt # 上次运行main.py之后终端输出重定向的文件nohup.out的备份
 # output.txt # last_pre.sh第一次处理生成

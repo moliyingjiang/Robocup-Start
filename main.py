@@ -29,11 +29,6 @@ class CameraApp:
         self.image_frame.create_text(275, 200, text="图像显示", font=("Helvetica", 12),tags="pre_display_none")
         custom_label = tk.Label(root, text="识别结果输出区", font=("Helvetica", 14))
         custom_label.place(x=580, y=5)
-        
-        self.frame = tk.Frame(root, bg="gray", width=200, height=200)
-        self.frame.place(x=590, y=200)  # Adjust the position
-        self.bordered_label = tk.Label(self.frame, text="识别状态程序输出", font=("Helvetica", 16), bg="gray", fg="black", relief="solid", bd=2)
-        self.bordered_label.pack(fill="both", expand=True, padx=10, pady=10)
 
         self.result_frame = Canvas(root, bg="gray", width=200, height=300)
         self.result_frame.place(x=580, y=50)
@@ -53,7 +48,7 @@ class CameraApp:
         self.is_running = False
 
         self.tags = []
-    
+
     def predict_text_display(self,predict_text):
         self.result_frame.delete("predict_text_display")
         self.result_frame.create_text(100, 14, text=predict_text, font=("Helvetica", 10),tags="predict_text_display")
@@ -89,7 +84,7 @@ class CameraApp:
                 '''
                  # TK显示模型加载完毕
                 self.tip_text = tk.Label(root, text="模型加载完毕！", font=("Helvetica", 10))
-                self.tip_text.place(x=350, y=515)
+                self.tip_text.place(x=350, y=528)
             
             '''
             
