@@ -6,7 +6,16 @@ import threading
 from v5 import init,predict_img
 from utils.general import check_img_size, non_max_suppression, scale_coords
 import time
+
+
+
 class CameraApp:
+
+    '''
+
+    定义一些基础的变量以及TK图标库以及标签
+
+    '''
     def __init__(self, root):
         self.root = root
         self.root.title("图像识别程序")
@@ -14,7 +23,7 @@ class CameraApp:
 
         self.image_frame = tk.Canvas(root, bg="gray", width=550, height=400)
         self.image_frame.place(x=20, y=20)
-        self.image_frame.create_text(275, 200, text="图像显示", font=("Helvetica", 16))
+        self.image_frame.create_text(275, 200, text="图像显示", font=("Helvetica", 16),tags="start")
 
         custom_label = tk.Label(root, text="识别结果输出区", font=("Helvetica", 18))
         custom_label.place(x=580, y=5)
@@ -38,56 +47,109 @@ class CameraApp:
 
         self.tip_text = tk.Label(root, text="灰色矩形框为可显示输出数据框，黄色矩形按钮表示开始按钮", font=("Helvetica", 10))
         self.tip_text.place(x=20, y=570)
-
+        self.done_lock = True
         self.cap = None
         self.camera_thread = None
         self.is_running = False
+        
+        self.tags = []
 
     def start_camera(self):
         if not self.is_running:
             self.is_running = True
             self.cap = cv2.VideoCapture(0)
             self.capture_loop()
-            # self.camera_thread = threading.Thread(target=self.capture_loop)
+            # 删除这里，线程运行的方式会导致画面闪动
+            # self.camera_thread = threading.Thread(target=self.capture_loop) 
             # self.camera_thread.start()
 
     def capture_loop(self):
+        self.image_frame.delete("start")
+        self.image_frame.create_text(275, 240, text="模型加载中...", font=("Helvetica", 16),tags="start") # Add new tag to display
         device, half, model, names, colors = init()
-        def TEXT(yolo_results):
-                text = self.result_frame.create_text(100, 40, text=yolo_results, font=("Helvetica", 16))
-                time.sleep(1)
-                self.result_frame.delete(text)
+        
+        # 允许检测
         while self.is_running:
-            ret, frame = self.cap.read()
-            if not ret:
+            ret, frame = self.cap.read() # 读取图像
+            if not ret: # 无图像正常退出
                 break
-            
+            if self.done_lock:
+                self.done_lock = False
+                self.image_frame.delete("start") # Clear previous tag
+                self.image_frame.delete("done") # Clear previous tag
+                self.image_frame.create_text(100, 80, text="模型加载完毕！", font=("Helvetica", 18), tags="done") # Add new tag to display
+            # 调用V5进行检测
             img, pred = predict_img([frame], device, half, model)
-            yolo_results = []
+            
+            yolo_results = [] # 定义一个存储yolo输出标签的列表
+            yolo_last_results = [] # 定义一个用于tkinter读取显示的最后的列表
+            self.tags.clear() # 用于存储已读标签避免TK重复读取重复显示
+
+            '''
+
+            定义一个要显示并计算其计算数量的标签(如果不想限制，则设置Read_count_args_Lock为False)
+
+            '''
+            count_args = ["back"]
+            Read_count_args_Lock = False
+
+            # 获取V5输出结果
             for i, det in enumerate(pred):  # detections per image
                 if len(det):
                     # Rescale boxes from img_size to im0 size
                     det[:, :4] = scale_coords(img.shape[2:], det[:, :4], frame.shape).round()  # use frame.shape instead of im0.shape
                     for *xyxy, conf, cls in reversed(det):
                         label = f'{names[int(cls)]}'
-                        if conf >= 0.6:
+                        if conf >= 0.6 and names[int(cls)] in count_args and Read_count_args_Lock or not Read_count_args_Lock:
                             print(label)
                             yolo_results.append(label)
                             x1, y1, x2, y2 = [int(xy) for xy in xyxy]
-                            cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)),
-                                              (0, 0, 255), 3)
-
-                            cv2.putText(frame, label, (int(x1), int(y1 - 10)), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
+                            '''
                             
-            # Display the frame with bounding boxes and labels
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+                            画框和标签
+                            
+                            '''
+                            cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)),(0, 0, 255), 3)
+                            cv2.putText(frame, label, (int(x1), int(y1 - 10)), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
+            
+            '''
+
+            计算"your_args"出现的次数并转移合适信息到TK列表中
+
+            '''
+            for temp in yolo_results:
+                cont_temp = self.tags
+                count_result = yolo_results.count(temp) # 计算物体出现的次数
+                if temp not in cont_temp: # 如果出现的这个标签没有被读取和添加过
+                    if count_result > 1: # 如果数量超过一个，则设置标签数量为复数
+                        yolo_last_results.append(f'识别结果：{temp}s，\n数量：{count_result}个.') # 添加信息到TK读取的列表
+                    else:
+                        yolo_last_results.append(f'识别结果：{temp}, \n数量：{count_result}个.') # 同上
+                self.tags.append(temp) # 添加已读标签到self.tags中
+
+            '''
+
+            显示图像以及标签
+
+            '''
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR) # 避免图像蓝色调过重的问题/修复1
             img = Image.fromarray(frame)
             img_tk = ImageTk.PhotoImage(image=img)
             self.image_frame.delete("image")  # Clear previous image
             self.image_frame.create_image(275, 200, image=img_tk, tags="image")  # Add new image
             # threading.Thread(target = TEXT,args=(yolo_results,)).start()
-            self.result_frame.delete("yolo_result_font")
-            self.result_frame.create_text(100, 40, text=yolo_results, font=("Helvetica", 16),tags = "yolo_result_font")
+            self.result_frame.delete("done") # Clear previous tag
+            self.result_frame.delete("yolo_result_font") # Clear previous tag
+            
+            '''
+
+            将标签显示在输出框中
+
+            '''
+            pre_out_size = 45 # 设置初始的标签显示位置
+            for temp in yolo_last_results:
+                self.result_frame.create_text(100, pre_out_size, text=temp, font=("Helvetica", 11),tags = "yolo_result_font") # Add new tag to display
+                pre_out_size += 30 # 自动换行间隔设定
             
             self.root.update_idletasks()  # Update display
 

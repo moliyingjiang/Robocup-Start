@@ -50,5 +50,6 @@ def predict_img(imgs, device, half, model):
         img = img.unsqueeze(0)
     pred = model(img, augment=False)[0]
     # Apply NMS
-    pred = non_max_suppression(pred, 0.25, 0.45, classes=[0, 1, 2, 3, 4, 5, 6, 7], agnostic=False)
+    # 在此设置自己所要用的标签序号(根据训练时候的配置)
+    pred = non_max_suppression(pred, 0.25, 0.45, classes=[0, 1, 2, 3, 4, 5, 6, 7,8,9,10,11,12,13,14,15,16,17,18,19,20], agnostic=False)
     return img, pred
