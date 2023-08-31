@@ -51,7 +51,7 @@ class CameraApp:
         self.cap = None
         self.camera_thread = None
         self.is_running = False
-        
+
         self.tags = []
 
     def start_camera(self):
@@ -90,7 +90,7 @@ class CameraApp:
             定义一个要显示并计算其计算数量的标签(如果不想限制，则设置Read_count_args_Lock为False)
 
             '''
-            count_args = ["back"]
+            count_args = ["back","forward"]
             Read_count_args_Lock = False
 
             # 获取V5输出结果
