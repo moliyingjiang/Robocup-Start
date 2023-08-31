@@ -7,7 +7,10 @@ from v5 import init,predict_img
 from utils.general import check_img_size, non_max_suppression, scale_coords
 import time
 import sys
+import yaml
 
+with open('config.yaml') as f:
+    config = yaml.safe_load(f)
 
 class CameraApp:
 
@@ -23,8 +26,8 @@ class CameraApp:
         self.image_frame = tk.Canvas(root, bg="gray", width=550, height=400)
         self.image_frame.place(x=20, y=20)
         self.model_message = "图像显示"
-        self.image_frame.create_text(275, 200, text="图像显示", font=("Helvetica", 16),tags="pre_display_none")
-        custom_label = tk.Label(root, text=" 识别结果输出区", font=("Helvetica", 18))
+        self.image_frame.create_text(275, 200, text="图像显示", font=("Helvetica", 12),tags="pre_display_none")
+        custom_label = tk.Label(root, text="识别结果输出区", font=("Helvetica", 14))
         custom_label.place(x=580, y=5)
         
         self.frame = tk.Frame(root, bg="gray", width=200, height=200)
@@ -53,12 +56,12 @@ class CameraApp:
 
     def predict_text_display(self,predict_text):
         self.result_frame.delete("predict_text_display")
-        self.result_frame.create_text(100, 14, text=predict_text, font=("Helvetica", 14),tags="predict_text_display")
+        self.result_frame.create_text(100, 14, text=predict_text, font=("Helvetica", 10),tags="predict_text_display")
         self.root.update_idletasks()  # Update display
 
     def start_camera(self):
         self.model_message = "模型加载中..."
-        self.image_frame.create_text(275, 250, text=self.model_message, font=("Helvetica", 16),tags="pre_display_none") # 创建并显示：模型加载中...
+        self.image_frame.create_text(275, 250, text=self.model_message, font=("Helvetica", 12),tags="pre_display_none") # 创建并显示：模型加载中...
         self.root.update_idletasks()  # Update display 更新画面
         if not self.is_running:
             self.is_running = True
@@ -117,8 +120,8 @@ class CameraApp:
             定义一个要显示并计算其计算数量的标签(如果不想限制，则设置Read_count_args_Lock为False)
 
             '''
-            count_args = ["back","forward"]
-            Read_count_args_Lock = False
+            count_args = config['count_args']
+            Read_count_args_Lock = config['Read_count_args_Lock']
 
             # 获取V5输出结果
             for i, det in enumerate(pred):  # detections per image
@@ -127,7 +130,7 @@ class CameraApp:
                     det[:, :4] = scale_coords(img.shape[2:], det[:, :4], frame.shape).round()  # use frame.shape instead of im0.shape
                     for *xyxy, conf, cls in reversed(det):
                         label = f'{names[int(cls)]}'
-                        if conf >= 0.6 and names[int(cls)] in count_args and Read_count_args_Lock or not Read_count_args_Lock:
+                        if (conf >= config['conf'] and names[int(cls)] in count_args and Read_count_args_Lock) or (conf >= config['conf'] and not Read_count_args_Lock):
                             # print(label)
                             yolo_results.append(label)
                             x1, y1, x2, y2 = [int(xy) for xy in xyxy]
@@ -178,7 +181,7 @@ class CameraApp:
             pre_out_size = 43 # 设置初始的标签显示位置
             for temp in yolo_last_results:
                 # print(temp)
-                self.result_frame.create_text(100, pre_out_size, text=temp, font=("Helvetica", 11),tags = "yolo_result_font") # Add new tag to display
+                self.result_frame.create_text(100, pre_out_size, text=temp, font=("Helvetica", 9),tags = "yolo_result_font") # Add new tag to display
                 pre_out_size += 33 # 自动换行间隔设定
             
             '''

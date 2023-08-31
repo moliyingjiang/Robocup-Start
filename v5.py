@@ -14,16 +14,19 @@ from models.experimental import attempt_load
 import warnings
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-
+import yaml
 import cv2
 import numpy as np
+
+with open('config.yaml') as f:
+    config = yaml.safe_load(f)
 
 def init():
     FILE = Path(__file__).absolute()
     sys.path.append(FILE.parents[0].as_posix())  # add yolov5/ to path
     device = torch.device('cuda:0')
     half = device.type != 'cpu'  # half precision only supported on CUDA
-    model = attempt_load('best_hand.pt', map_location=device)  # load FP32 model
+    model = attempt_load(config['weight'], map_location=device)  # load FP32 model
     imgsz = check_img_size(640, s=model.stride.max())  # check img_size
     if half:
         model.half()  # to FP16
@@ -51,5 +54,5 @@ def predict_img(imgs, device, half, model):
     pred = model(img, augment=False)[0]
     # Apply NMS
     # 在此设置自己所要用的标签序号(根据训练时候的配置)
-    pred = non_max_suppression(pred, 0.25, 0.45, classes=[0, 1, 2, 3, 4, 5, 6, 7,8,9,10,11,12,13,14,15,16,17,18,19,20], agnostic=False)
+    pred = non_max_suppression(pred, 0.25, 0.45, classes=config['classes'], agnostic=False)
     return img, pred
