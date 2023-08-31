@@ -6,14 +6,27 @@ Traceback (most recent call last):
     return self.func(*args)
   File "main.py", line 66, in start_camera
     self.capture_loop()
-  File "main.py", line 166, in capture_loop
-    self.image_frame.create_image(275, 200, image=img_tk, tags="image")  # Add new image
-  File "/home/lx/anaconda3/envs/DCN_py38/lib/python3.8/tkinter/__init__.py", line 2790, in create_image
-    return self._create('image', args, kw)
-  File "/home/lx/anaconda3/envs/DCN_py38/lib/python3.8/tkinter/__init__.py", line 2776, in _create
-    return self.tk.getint(self.tk.call(
+  File "main.py", line 77, in capture_loop
+    ret, frame = self.cap.read() # 读取图像
 KeyboardInterrupt
-['forward, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
+['back, 数量：1个.']
 ['back, 数量：1个.']
 Traceback (most recent call last):
   File "main.py", line 199, in <module>
