@@ -18,7 +18,7 @@ class CameraApp:
 
         custom_label = tk.Label(root, text="识别结果输出区", font=("Helvetica", 18))
         custom_label.place(x=580, y=5)
-
+        
         self.frame = tk.Frame(root, bg="gray", width=200, height=200)
         self.frame.place(x=590, y=200)  # Adjust the position
         self.bordered_label = tk.Label(self.frame, text="识别状态程序输出", font=("Helvetica", 16), bg="gray", fg="black", relief="solid", bd=2)
@@ -27,7 +27,7 @@ class CameraApp:
         self.result_frame = Canvas(root, bg="gray", width=200, height=300)
         self.result_frame.place(x=580, y=50)
         self.bordered_label = tk.Label(self.result_frame, text="识别状态程序输出", font=("Helvetica", 16), bg="gray",fg="black", relief="solid", bd=2)
-        # self.result_frame.create_text(100, 20, text="识别程序状态输出", font=("Helvetica", 16))
+        self.result_frame.create_text(100, 20, text="识别程序状态输出", font=("Helvetica", 16))
 
         self.start_button = tk.Button(root, text="开始", command=self.start_camera, bg="orange", width=5, height=2, font=("Helvetica", 16))
         self.start_button.place(x=350, y=450)
@@ -57,9 +57,8 @@ class CameraApp:
             ret, frame = self.cap.read()
             if not ret:
                 break
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            
             img, pred = predict_img([frame], device, half, model)
-            ocr_results = []
             yolo_results = []
             for i, det in enumerate(pred):  # detections per image
                 if len(det):
@@ -69,6 +68,7 @@ class CameraApp:
                         label = f'{names[int(cls)]}'
                         if conf >= 0.6:
                             print(label)
+                            yolo_results.append(label)
                             x1, y1, x2, y2 = [int(xy) for xy in xyxy]
                             cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)),
                                               (0, 0, 255), 3)
@@ -76,10 +76,12 @@ class CameraApp:
                             cv2.putText(frame, label, (int(x1), int(y1 - 10)), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 3)
                             
             # Display the frame with bounding boxes and labels
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
             img = Image.fromarray(frame)
             img_tk = ImageTk.PhotoImage(image=img)
             self.image_frame.delete("image")  # Clear previous image
             self.image_frame.create_image(275, 200, image=img_tk, tags="image")  # Add new image
+            self.result_frame.create_text(100, 40, text=yolo_results, font=("Helvetica", 16))
             self.root.update_idletasks()  # Update display
 
         self.cap.release()
