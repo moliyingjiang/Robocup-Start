@@ -5,7 +5,7 @@ from PIL import Image, ImageTk
 import threading
 from v5 import init,predict_img
 from utils.general import check_img_size, non_max_suppression, scale_coords
-
+import time
 class CameraApp:
     def __init__(self, root):
         self.root = root
@@ -53,6 +53,10 @@ class CameraApp:
 
     def capture_loop(self):
         device, half, model, names, colors = init()
+        def TEXT(yolo_results):
+                text = self.result_frame.create_text(100, 40, text=yolo_results, font=("Helvetica", 16))
+                time.sleep(1)
+                self.result_frame.delete(text)
         while self.is_running:
             ret, frame = self.cap.read()
             if not ret:
@@ -81,7 +85,10 @@ class CameraApp:
             img_tk = ImageTk.PhotoImage(image=img)
             self.image_frame.delete("image")  # Clear previous image
             self.image_frame.create_image(275, 200, image=img_tk, tags="image")  # Add new image
-            self.result_frame.create_text(100, 40, text=yolo_results, font=("Helvetica", 16))
+            # threading.Thread(target = TEXT,args=(yolo_results,)).start()
+            self.result_frame.delete("yolo_result_font")
+            self.result_frame.create_text(100, 40, text=yolo_results, font=("Helvetica", 16),tags = "yolo_result_font")
+            
             self.root.update_idletasks()  # Update display
 
         self.cap.release()
