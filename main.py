@@ -20,12 +20,11 @@ class CameraApp:
         self.root = root
         self.root.title("图像识别程序")
         self.root.geometry("800x600")
-
         self.image_frame = tk.Canvas(root, bg="gray", width=550, height=400)
         self.image_frame.place(x=20, y=20)
-        self.image_frame.create_text(275, 200, text="图像显示", font=("Helvetica", 16),tags="start")
-
-        custom_label = tk.Label(root, text="识别结果输出区", font=("Helvetica", 18))
+        self.model_message = "图像显示"
+        self.image_frame.create_text(275, 200, text="图像显示", font=("Helvetica", 16),)
+        custom_label = tk.Label(root, text=" 识别结果输出区", font=("Helvetica", 18))
         custom_label.place(x=580, y=5)
         
         self.frame = tk.Frame(root, bg="gray", width=200, height=200)
@@ -36,7 +35,7 @@ class CameraApp:
         self.result_frame = Canvas(root, bg="gray", width=200, height=300)
         self.result_frame.place(x=580, y=50)
         self.bordered_label = tk.Label(self.result_frame, text="识别状态程序输出", font=("Helvetica", 16), bg="gray",fg="black", relief="solid", bd=2)
-        self.result_frame.create_text(100, 20, text="识别程序状态输出", font=("Helvetica", 16))
+        # self.result_frame.create_text(100, 20, text="识别程序状态输出", font=("Helvetica", 16))
 
         self.start_button = tk.Button(root, text="开始", command=self.start_camera, bg="orange", width=5, height=2, font=("Helvetica", 16))
         self.start_button.place(x=350, y=450)
@@ -54,33 +53,52 @@ class CameraApp:
 
         self.tags = []
 
+    def predict_text_display(self,predict_text):
+        self.result_frame.delete("predict_text_display")
+        self.result_frame.create_text(100, 10, text=predict_text, font=("Helvetica", 14),tags="predict_text_display")
+        self.root.update_idletasks()  # Update display
+
     def start_camera(self):
+        # self.tip_text = tk.Label(root, text="模型加载中...", font=("Helvetica", 10))
+        # self.tip_text.place(x=350, y=530)
+        self.model_message = "模型加载中..."
+        self.image_frame.create_text(275, 250, text=self.model_message, font=("Helvetica", 16),)
+        self.root.update_idletasks()  # Update display
         if not self.is_running:
             self.is_running = True
             self.cap = cv2.VideoCapture(0)
             self.capture_loop()
+            # self.tk_start_init()
             # 删除这里，线程运行的方式会导致画面闪动
             # self.camera_thread = threading.Thread(target=self.capture_loop) 
             # self.camera_thread.start()
-
+    
     def capture_loop(self):
-        self.image_frame.delete("start")
-        self.image_frame.create_text(275, 240, text="模型加载中...", font=("Helvetica", 16),tags="start") # Add new tag to display
+        predict_text_arr = []
+        predict_text_display_count = 40
         device, half, model, names, colors = init()
-        
         # 允许检测
         while self.is_running:
             ret, frame = self.cap.read() # 读取图像
             if not ret: # 无图像正常退出
                 break
             if self.done_lock:
-                self.done_lock = False
-                self.image_frame.delete("start") # Clear previous tag
-                self.image_frame.delete("done") # Clear previous tag
-                self.image_frame.create_text(100, 80, text="模型加载完毕！", font=("Helvetica", 18), tags="done") # Add new tag to display
+                self.done_lock=False
+                # self.tip_text.delete("start")
+                self.tip_text = tk.Label(root, text="模型加载完毕！", font=("Helvetica", 10))
+                self.tip_text.place(x=350, y=515)
+            
+            predict_text_display_count -= 1
+            if predict_text_display_count % 4 == 0:
+                predict_text_arr.append(".")
+                predict_text = f'模型推理中{"".join(predict_text_arr)}'
+                if len(predict_text_arr) <= 6:
+                    self.predict_text_display(predict_text)
             # 调用V5进行检测
             img, pred = predict_img([frame], device, half, model)
-            
+            if predict_text_display_count == 0:
+                predict_text_display_count = 40
+                predict_text_arr.clear()
             yolo_results = [] # 定义一个存储yolo输出标签的列表
             yolo_last_results = [] # 定义一个用于tkinter读取显示的最后的列表
             self.tags.clear() # 用于存储已读标签避免TK重复读取重复显示
@@ -122,9 +140,9 @@ class CameraApp:
                 count_result = yolo_results.count(temp) # 计算物体出现的次数
                 if temp not in cont_temp: # 如果出现的这个标签没有被读取和添加过
                     if count_result > 1: # 如果数量超过一个，则设置标签数量为复数
-                        yolo_last_results.append(f'识别结果：{temp}s，\n数量：{count_result}个.') # 添加信息到TK读取的列表
+                        yolo_last_results.append(f'{temp}s，数量：{count_result}个.') # 添加信息到TK读取的列表
                     else:
-                        yolo_last_results.append(f'识别结果：{temp}, \n数量：{count_result}个.') # 同上
+                        yolo_last_results.append(f'{temp}, 数量：{count_result}个.') # 同上
                 self.tags.append(temp) # 添加已读标签到self.tags中
 
             '''
@@ -146,10 +164,10 @@ class CameraApp:
             将标签显示在输出框中
 
             '''
-            pre_out_size = 45 # 设置初始的标签显示位置
+            pre_out_size = 35 # 设置初始的标签显示位置
             for temp in yolo_last_results:
                 self.result_frame.create_text(100, pre_out_size, text=temp, font=("Helvetica", 11),tags = "yolo_result_font") # Add new tag to display
-                pre_out_size += 30 # 自动换行间隔设定
+                pre_out_size += 35 # 自动换行间隔设定
             
             self.root.update_idletasks()  # Update display
 
