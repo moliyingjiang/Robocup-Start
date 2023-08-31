@@ -81,7 +81,9 @@ class CameraApp:
                 self.image_frame.delete("pre_display_none") # 删除一开始DeBug用到的TK初始文字显示
                 self.done_lock = False # 模型加载完成只显示一次
                  
-                 ''''''
+                '''
+                TK display
+                '''
                  # TK显示模型加载完毕
                 self.tip_text = tk.Label(root, text="模型加载完毕！", font=("Helvetica", 10))
                 self.tip_text.place(x=350, y=515)
@@ -102,7 +104,7 @@ class CameraApp:
                 predict_text_display_count = 40
                 predict_text_arr.clear()
 
-             ''''''
+            ''''''
              # 调用V5进行检测
             img, pred = predict_img([frame], device, half, model)
             
@@ -126,7 +128,7 @@ class CameraApp:
                     for *xyxy, conf, cls in reversed(det):
                         label = f'{names[int(cls)]}'
                         if conf >= 0.6 and names[int(cls)] in count_args and Read_count_args_Lock or not Read_count_args_Lock:
-                            print(label)
+                            # print(label)
                             yolo_results.append(label)
                             x1, y1, x2, y2 = [int(xy) for xy in xyxy]
                             '''
@@ -154,7 +156,7 @@ class CameraApp:
 
             '''
 
-            显示图像以及标签
+            显示图像以及检测结果
 
             '''
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR) # 避免图像蓝色调过重的问题/修复1
@@ -168,21 +170,29 @@ class CameraApp:
             
             '''
 
-            将标签显示在输出框中
+            将检测结果显示在输出框中
 
             '''
-            pre_out_size = 39 # 设置初始的标签显示位置
+            if len(yolo_last_results) != 0:
+                print(yolo_last_results)
+            pre_out_size = 43 # 设置初始的标签显示位置
             for temp in yolo_last_results:
+                # print(temp)
                 self.result_frame.create_text(100, pre_out_size, text=temp, font=("Helvetica", 11),tags = "yolo_result_font") # Add new tag to display
                 pre_out_size += 33 # 自动换行间隔设定
             
+            '''
+
+            非常重要的地方，一定要更新画面
+
+            '''
             self.root.update_idletasks()  # Update display
 
         self.cap.release()
 
     def kill_predict(self):
         sys.exit()
-        
+
 if __name__ == '__main__':
     root = tk.Tk()
     app = CameraApp(root)
