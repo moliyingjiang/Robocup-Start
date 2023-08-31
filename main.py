@@ -53,7 +53,7 @@ class CameraApp:
         self.is_running = False
 
         self.tags = []
-
+    
     def predict_text_display(self,predict_text):
         self.result_frame.delete("predict_text_display")
         self.result_frame.create_text(100, 14, text=predict_text, font=("Helvetica", 10),tags="predict_text_display")
