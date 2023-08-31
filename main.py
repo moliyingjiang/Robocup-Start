@@ -6,7 +6,7 @@ import threading
 from v5 import init,predict_img
 from utils.general import check_img_size, non_max_suppression, scale_coords
 import time
-
+import sys
 
 
 class CameraApp:
@@ -23,7 +23,7 @@ class CameraApp:
         self.image_frame = tk.Canvas(root, bg="gray", width=550, height=400)
         self.image_frame.place(x=20, y=20)
         self.model_message = "图像显示"
-        self.image_frame.create_text(275, 200, text="图像显示", font=("Helvetica", 16),)
+        self.image_frame.create_text(275, 200, text="图像显示", font=("Helvetica", 16),tags="pre_display_none")
         custom_label = tk.Label(root, text=" 识别结果输出区", font=("Helvetica", 18))
         custom_label.place(x=580, y=5)
         
@@ -39,9 +39,7 @@ class CameraApp:
 
         self.start_button = tk.Button(root, text="开始", command=self.start_camera, bg="orange", width=5, height=2, font=("Helvetica", 16))
         self.start_button.place(x=350, y=450)
-
-
-        self.red_button = tk.Button(root, text="➔", bg="red", fg="black", width=5, height=2, font=("Helvetica", 24, "bold"))
+        self.red_button = tk.Button(root, text="➔", command=self.kill_predict, bg="red", fg="black", width=5, height=2, font=("Helvetica", 24, "bold"))
         self.red_button.place(x=700, y=500)
 
         self.tip_text = tk.Label(root, text="灰色矩形框为可显示输出数据框，黄色矩形按钮表示开始按钮", font=("Helvetica", 10))
@@ -55,20 +53,17 @@ class CameraApp:
 
     def predict_text_display(self,predict_text):
         self.result_frame.delete("predict_text_display")
-        self.result_frame.create_text(100, 10, text=predict_text, font=("Helvetica", 14),tags="predict_text_display")
+        self.result_frame.create_text(100, 14, text=predict_text, font=("Helvetica", 14),tags="predict_text_display")
         self.root.update_idletasks()  # Update display
 
     def start_camera(self):
-        # self.tip_text = tk.Label(root, text="模型加载中...", font=("Helvetica", 10))
-        # self.tip_text.place(x=350, y=530)
         self.model_message = "模型加载中..."
-        self.image_frame.create_text(275, 250, text=self.model_message, font=("Helvetica", 16),)
-        self.root.update_idletasks()  # Update display
+        self.image_frame.create_text(275, 250, text=self.model_message, font=("Helvetica", 16),tags="pre_display_none") # 创建并显示：模型加载中...
+        self.root.update_idletasks()  # Update display 更新画面
         if not self.is_running:
             self.is_running = True
             self.cap = cv2.VideoCapture(0)
             self.capture_loop()
-            # self.tk_start_init()
             # 删除这里，线程运行的方式会导致画面闪动
             # self.camera_thread = threading.Thread(target=self.capture_loop) 
             # self.camera_thread.start()
@@ -83,22 +78,34 @@ class CameraApp:
             if not ret: # 无图像正常退出
                 break
             if self.done_lock:
-                self.done_lock=False
-                # self.tip_text.delete("start")
+                self.image_frame.delete("pre_display_none") # 删除一开始DeBug用到的TK初始文字显示
+                self.done_lock = False # 模型加载完成只显示一次
+                 
+                 ''''''
+                 # TK显示模型加载完毕
                 self.tip_text = tk.Label(root, text="模型加载完毕！", font=("Helvetica", 10))
                 self.tip_text.place(x=350, y=515)
             
-            predict_text_display_count -= 1
-            if predict_text_display_count % 4 == 0:
+            '''
+            
+            动态显示"模型加载中......."
+            
+            '''
+            predict_text_display_count -= 1 # 保证动态区间控制的值在发生变化
+            if predict_text_display_count % 4 == 0: # 显示计数区间值隔帧动态--(根据自己的实际帧率调整，帧率高就调高点，帧率低就调低点)
                 predict_text_arr.append(".")
-                predict_text = f'模型推理中{"".join(predict_text_arr)}'
-                if len(predict_text_arr) <= 6:
+                predict_text = f'模型推理中{"".join(predict_text_arr)}' # 将列表转化为字符串方便显示
+                if len(predict_text_arr) <= 6: # 限制六个省略号
                     self.predict_text_display(predict_text)
-            # 调用V5进行检测
-            img, pred = predict_img([frame], device, half, model)
+            # 避免计数区间值的干涸与超值
             if predict_text_display_count == 0:
                 predict_text_display_count = 40
                 predict_text_arr.clear()
+
+             ''''''
+             # 调用V5进行检测
+            img, pred = predict_img([frame], device, half, model)
+            
             yolo_results = [] # 定义一个存储yolo输出标签的列表
             yolo_last_results = [] # 定义一个用于tkinter读取显示的最后的列表
             self.tags.clear() # 用于存储已读标签避免TK重复读取重复显示
@@ -164,15 +171,18 @@ class CameraApp:
             将标签显示在输出框中
 
             '''
-            pre_out_size = 35 # 设置初始的标签显示位置
+            pre_out_size = 39 # 设置初始的标签显示位置
             for temp in yolo_last_results:
                 self.result_frame.create_text(100, pre_out_size, text=temp, font=("Helvetica", 11),tags = "yolo_result_font") # Add new tag to display
-                pre_out_size += 35 # 自动换行间隔设定
+                pre_out_size += 33 # 自动换行间隔设定
             
             self.root.update_idletasks()  # Update display
 
         self.cap.release()
 
+    def kill_predict(self):
+        sys.exit()
+        
 if __name__ == '__main__':
     root = tk.Tk()
     app = CameraApp(root)
