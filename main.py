@@ -104,6 +104,7 @@ class CameraApp:
 
             ''''''
              # 调用V5进行检测
+            frame = cv2.flip(frame,1)
             img, pred = predict_img([frame], device, half, model)
             
             yolo_results = [] # 定义一个存储yolo输出标签的列表
@@ -158,6 +159,7 @@ class CameraApp:
 
             '''
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR) # 避免图像蓝色调过重的问题/修复1
+
             img = Image.fromarray(frame)
             img_tk = ImageTk.PhotoImage(image=img)
             self.image_frame.delete("image")  # Clear previous image
