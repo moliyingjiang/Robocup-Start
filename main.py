@@ -9,7 +9,7 @@ import time
 import sys
 import yaml
 
-with open('config.yaml') as f:
+with open('config.yaml',encoding='utf-8') as f:
     config = yaml.safe_load(f)
 
 class CameraApp:
