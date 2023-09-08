@@ -96,6 +96,7 @@ class CameraApp:
                 predict_text_arr.append(".")
                 predict_text = f'模型推理中{"".join(predict_text_arr)}' # 将列表转化为字符串方便显示
                 if len(predict_text_arr) <= 6: # 限制六个省略号
+                    # threading.Thread(target=self.predict_text_display,args=(predict_text,))
                     self.predict_text_display(predict_text)
             # 避免计数区间值的干涸与超值
             if predict_text_display_count == 0:
