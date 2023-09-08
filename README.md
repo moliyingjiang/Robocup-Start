@@ -1,4 +1,4 @@
-# __START__
+## __START__
 
 - v5.py # 运行yolov5所需要的初始化方法和预测方法
 - main.py # 包含Tkinter包装和yolov5识别结果的可视化
@@ -12,6 +12,10 @@
 ```bash
 
 conda activate YourEnv # 激活自己所配置好的yolov5及Tkinter的环境
+
+```
+```bash
+
 python main.py # 运行main.py即可调用摄像头进行识别
 
 ```
@@ -20,8 +24,21 @@ python main.py # 运行main.py即可调用摄像头进行识别
 ```bash
 
 conda activate YourEnv # 激活自己所配置好的yolov5及Tkinter的环境
-nohup python main.py # 运行main.py即可调用摄像头进行识别，使用nohup进行终端输出重定向，定向位置为nohup.out
+
+```
+```bash
+
+nohup python main.py # 运行main.py即可调用摄像头进行识别，使用nohup进行终端输出
+
+```
+```bash
+
 mv nohup.out output.txt
+
+```
+
+```bash
+
 python pre.py
 
 ```
@@ -37,5 +54,5 @@ cp last-output.txt ~/last-output # 复制最终结果的文件进去
 
 ```
 
-# __END__
+## __END__
 
