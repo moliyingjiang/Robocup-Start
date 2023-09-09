@@ -168,7 +168,7 @@ class CameraApp:
             # threading.Thread(target = TEXT,args=(yolo_results,)).start()
             self.result_frame.delete("done") # Clear previous tag
             self.result_frame.delete("yolo_result_font") # Clear previous tag
-            
+
             '''
 
             将检测结果显示在输出框中
